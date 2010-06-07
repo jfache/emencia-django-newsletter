@@ -35,7 +35,7 @@ function save_image() { OFC.jquery.popup('charts_view'); }
 $(document).ready(function(){
   swfobject.embedSWF("{{ NEWSLETTER_MEDIA_URL }}swf/open-flash-chart.swf", "charts_view", "498", "350", "9.0.0", 
                      "{{ NEWSLETTER_MEDIA_URL }}js/swfobject/expressInstall.swf",
-                     {"data-file": "{% url newsletter_newsletter_charts object.slug %}"});
+                     {"data-file": "{% if mailing_list %}{% url newsletter_newsletter_charts_mailing_list object.slug mailing_list.pk %}{% else %}{% url newsletter_newsletter_charts object.slug %}{% endif %}"});
 
   function reload_charts(charts_data) {
     swfobject.getObjectById("charts_view").load(charts_data);
@@ -172,17 +172,29 @@ $(document).ready(function(){
 
 {% block sidebar %}
 <div id="content-related">
+    <div class="module" id="mailing-list-module">
+      <h2>{% trans "Filtrer par liste de diffusion" %}</h2>
+      
+      <ul>
+        <li><a href="{% url newsletter_newsletter_statistics object.slug %}">{% trans "Toutes" %}</a></li>
+      {% for mailing_list in object.mailing_lists.all %}
+        <li><a href="{% url newsletter_newsletter_statistics_mailing_list object.slug mailing_list.pk %}">{{ mailing_list.name}}</a></li>
+      {% endfor %}
+      </ul>
+      <p></p>
+    </div>
     <div class="module" id="report-module">
       <h2>{% trans "Report" %}</h2>
+      
       <h3>
-	<a href="{% url newsletter_newsletter_report object.slug %}">{% trans "Download CSV report" %}</a>
+	<a href="{% if mailing_list %}{% url newsletter_newsletter_report_mailing_list object.slug mailing_list.pk %}{% else %}{% url newsletter_newsletter_report object.slug %}{% endif %}">{% trans "Download CSV report" %}</a>
       </h3>
       <p></p>
     </div>
     <div class="module" id="general-informations-module">
         <h2>{% trans "Informations" %}</h2>
 	<h3>{% trans "Recipients" %}</h3>
-	<p>{{ stats.mails_to_send }} <a href="{% url admin:newsletter_mailinglist_change object.mailing_list.pk %}">{% trans "View" %}</a></p>
+	<p>{{ stats.mails_to_send }}</p>
         <h3>{% trans "Status" %}</h3>
 	<p>{{ object.get_status_display }} {% if stats.remaining_mails %}<span class="mini quiet">(-{{ stats.remaining_mails }})</span>{% endif %}</p>
 	<h3>{% trans "Sending date" %}</h3>
@@ -194,7 +206,7 @@ $(document).ready(function(){
     </div>
     <div class="module" id="top-links-module">
 	<h2>{% trans "Top Links" %}
-	  (<a href="{% url newsletter_newsletter_density object.slug %}">{% trans "Density map" %}</a>)
+	  (<a href="{% if mailing_list %}{% url newsletter_newsletter_density_mailing_list object.slug mailing_list.pk %}{% else %}{% url newsletter_newsletter_density object.slug %}{% endif %}">{% trans "Density map" %}</a>)
 	</h2>
 	<ul class="actionlist">
 	{% for top_link in stats.top_links %}

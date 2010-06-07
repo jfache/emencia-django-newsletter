@@ -163,7 +163,7 @@ class MailingList(models.Model):
         return self.unsubscribers.all().count()
     unsubscribers_count.short_description = _('unsubscribers')
 
-    def expedition_set(self):
+    def recipients(self):
         unsubscribers_id = self.unsubscribers.values_list('id', flat=True)
         return self.subscribers.valid_subscribers().exclude(
             id__in=unsubscribers_id)
@@ -196,7 +196,7 @@ class Newsletter(models.Model):
     content = models.TextField(_('content'), help_text=_('Or paste an URL.'),
                                default='<body>\n<!-- %s -->\n</body>' % ugettext('Edit your newsletter here'))
 
-    mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'))
+    mailing_lists = models.ManyToManyField(MailingList, verbose_name=_('mailing list'))
     test_contacts = models.ManyToManyField(Contact, verbose_name=_('test contacts'),
                                            blank=True, null=True)
 
@@ -216,6 +216,12 @@ class Newsletter(models.Model):
 
     def mails_sent(self):
         return self.contactmailingstatus_set.filter(status=ContactMailingStatus.SENT).count()
+        
+    def recipients(self):
+        recipients = []
+        for mailing_list in self.mailing_lists.all():
+            recipients.extend(mailing_list.recipients())
+        return recipients
 
     @models.permalink
     def get_absolute_url(self):

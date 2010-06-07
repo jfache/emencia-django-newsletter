@@ -3,8 +3,11 @@ import urllib2
 
 from BeautifulSoup import BeautifulSoup, Tag
 from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 
 from emencia.django.newsletter.models import Link
+from emencia.django.newsletter.models import Newsletter
+from emencia.django.newsletter.models import MailingList
 
 def get_webpage_content(url):
     """Return the content of the website
@@ -45,4 +48,15 @@ def track_links(content, context):
                                                                                     context['uidb36'], context['token'],
                                                                                     link.pk]))
     return soup.prettify()
+    
+def get_recipients_list(newsletter, mailing_list_pk=None):
+    """Returns the recipient list of a newsletter
+    depending on the mailing list"""
+    if mailing_list_pk:
+        mailing_list = get_object_or_404(MailingList, pk=mailing_list_pk)
+        recipients_list = mailing_list.recipients()
+    else:
+        recipients_list = newsletter.recipients()
+        
+    return recipients_list
 

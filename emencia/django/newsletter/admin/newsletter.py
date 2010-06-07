@@ -18,14 +18,14 @@ from emencia.django.newsletter.utils.newsletter import get_webpage_content
 
 class NewsletterAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('title', 'mailing_list', 'server', 'status',
+    list_display = ('title', 'server', 'status',
                     'sending_date', 'creation_date', 'modification_date',
                     'historic_link', 'statistics_link')
     list_filter = ('status', 'sending_date', 'creation_date', 'modification_date')
     search_fields = ('title', 'content', 'header_sender', 'header_reply')
-    filter_horizontal = ['test_contacts']
+    filter_horizontal = ['test_contacts', 'mailing_lists']
     fieldsets = ((None, {'fields': ('title', 'content',)}),
-                 (_('Receivers'), {'fields': ('mailing_list', 'test_contacts',)}),
+                 (_('Receivers'), {'fields': ('mailing_lists', 'test_contacts',)}),
                  (_('Sending'), {'fields': ('sending_date', 'status',)}),
                  (_('Miscellaneous'), {'fields': ('server', 'header_sender',
                                                   'header_reply', 'slug'),

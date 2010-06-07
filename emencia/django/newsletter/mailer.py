@@ -95,7 +95,8 @@ class Mailer(object):
 
         already_sent = ContactMailingStatus.objects.filter(status=ContactMailingStatus.SENT,
                                                            newsletter=self.newsletter).values_list('contact__id', flat=True)
-        expedition_list = self.newsletter.mailing_list.expedition_set().exclude(id__in=already_sent)
+        expedition_list = self.newsletter.recipients().exclude(id__in=already_sent)
+            
         return expedition_list[:credits]
 
     def build_title_content(self, contact):
@@ -135,7 +136,7 @@ class Mailer(object):
             self.newsletter.status = Newsletter.SENDING
         if self.newsletter.status == Newsletter.SENDING and \
                self.newsletter.mails_sent() >= \
-               self.newsletter.mailing_list.expedition_set().count():
+               self.newsletter.recipients().count():
             self.newsletter.status = Newsletter.SENT
         self.newsletter.save()
 

@@ -1,7 +1,10 @@
 """Statistics for emencia.django.newsletter"""
 from django.db.models import Q
 
+from emencia.django.newsletter.utils.newsletter import get_recipients_list
+
 from emencia.django.newsletter.models import ContactMailingStatus as Status
+from emencia.django.newsletter.models import MailingList
 
 def get_newsletter_opening_statistics(status, recipients):
     """Return opening statistics of a newsletter based on status"""
@@ -94,10 +97,12 @@ def get_newsletter_top_links(status):
         
     return {'top_links': top_links}
 
-def get_newsletter_statistics(newsletter):
+def get_newsletter_statistics(newsletter, mailing_list_pk=None):
     """Return the statistics of a newsletter"""
-    recipients = newsletter.mailing_list.expedition_set().count()
-    all_status = Status.objects.filter(newsletter=newsletter)
+    recipients_list = get_recipients_list(newsletter, mailing_list_pk)
+    recipients = len(recipients_list)
+        
+    all_status = Status.objects.filter(newsletter=newsletter, contact__in=recipients_list)
     post_sending_status = all_status.filter(creation_date__gte=newsletter.sending_date)
     mails_sent = post_sending_status.filter(status=Status.SENT).count()
 

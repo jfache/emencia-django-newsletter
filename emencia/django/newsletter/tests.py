@@ -165,13 +165,13 @@ class MailingListTestCase(TestCase):
 
     def test_expedition_set(self):
         mailinglist = MailingList.objects.create(name='Test MailingList')
-        self.assertEquals(len(mailinglist.expedition_set()), 0)
+        self.assertEquals(len(mailinglist.recipients()), 0)
         mailinglist.subscribers.add(self.contact_1, self.contact_2, self.contact_3)
-        self.assertEquals(len(mailinglist.expedition_set()), 1)
+        self.assertEquals(len(mailinglist.recipients()), 1)
         mailinglist.subscribers.add(self.contact_4)
-        self.assertEquals(len(mailinglist.expedition_set()), 2)
+        self.assertEquals(len(mailinglist.recipients()), 2)
         mailinglist.unsubscribers.add(self.contact_4)
-        self.assertEquals(len(mailinglist.expedition_set()), 1)
+        self.assertEquals(len(mailinglist.recipients()), 1)
 
 
 class NewsletterTestCase(TestCase):

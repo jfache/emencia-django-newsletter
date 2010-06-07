@@ -15,10 +15,12 @@ from django.template.defaultfilters import date
 from emencia.django.newsletter.utils.ofc import Chart
 from emencia.django.newsletter.models import Newsletter
 from emencia.django.newsletter.models import ContactMailingStatus
+from emencia.django.newsletter.models import MailingList
 from emencia.django.newsletter.utils.statistics import get_newsletter_top_links
 from emencia.django.newsletter.utils.statistics import get_newsletter_statistics
 from emencia.django.newsletter.utils.statistics import get_newsletter_opening_statistics
 from emencia.django.newsletter.utils.statistics import get_newsletter_clicked_link_statistics
+from emencia.django.newsletter.utils.newsletter import get_recipients_list
 
 BG_COLOR = '#ffffff'
 GRID_COLOR = '#eeeeee'
@@ -44,7 +46,7 @@ def get_statistics_period(newsletter):
     return period
 
 @login_required
-def view_newsletter_statistics(request, slug):
+def view_newsletter_statistics(request, slug, mailing_list_pk=None):
     """Display the statistics of a newsletters"""
     opts = Newsletter._meta
     newsletter = get_object_or_404(Newsletter, slug=slug)
@@ -54,17 +56,24 @@ def view_newsletter_statistics(request, slug):
                'opts': opts,
                'object_id': newsletter.pk,
                'app_label': opts.app_label,
-               'stats': get_newsletter_statistics(newsletter),
+               'stats': get_newsletter_statistics(newsletter, mailing_list_pk),
                'period': get_statistics_period(newsletter),}
+               
+    if mailing_list_pk:
+        mailing_list = get_object_or_404(MailingList, pk=mailing_list_pk)
+        context['mailing_list'] = mailing_list
+        context['title'] = _('Statistics of %s / %s') % (newsletter.__unicode__(), mailing_list.__unicode__())
 
     return render_to_response('newsletter/newsletter_statistics.html',
                               context, context_instance=RequestContext(request))
 
 @login_required
-def view_newsletter_report(request, slug):
+def view_newsletter_report(request, slug, mailing_list_pk=None):
     newsletter = get_object_or_404(Newsletter, slug=slug)
+    recipients_list = get_recipients_list(newsletter, mailing_list_pk)
     status = ContactMailingStatus.objects.filter(newsletter=newsletter,
-                                                 creation_date__gte=newsletter.sending_date)
+                                                 creation_date__gte=newsletter.sending_date,
+                                                 contact__in=recipients_list)
     links = set([s.link for s in status.exclude(link=None)])
 
     def header_line(links):
@@ -87,16 +96,18 @@ def view_newsletter_report(request, slug):
 
     writer = csv.writer(response)
     writer.writerow(header_line(links))
-    for contact in newsletter.mailing_list.expedition_set():
+    for contact in recipients_list:
         writer.writerow(contact_line(contact, links))
 
     return response
 
 @login_required
-def view_newsletter_density(request, slug):
+def view_newsletter_density(request, slug, mailing_list_pk=None):
     newsletter = get_object_or_404(Newsletter, slug=slug)
+    recipients_list = get_recipients_list(newsletter, mailing_list_pk)
     status = ContactMailingStatus.objects.filter(newsletter=newsletter,
-                                                 creation_date__gte=newsletter.sending_date)
+                                                 creation_date__gte=newsletter.sending_date,
+                                                 contact__in=recipients_list)
     context = {'object': newsletter,
                'top_links': get_newsletter_top_links(status)['top_links']}
 
@@ -104,13 +115,14 @@ def view_newsletter_density(request, slug):
                               context, context_instance=RequestContext(request))
 
 @login_required
-def view_newsletter_charts(request, slug):
+def view_newsletter_charts(request, slug, mailing_list_pk=None):
     newsletter = get_object_or_404(Newsletter, slug=slug)
 
     start = int(request.POST.get('start', 0))
     end = int(request.POST.get('end', 6))
 
-    recipients = newsletter.mailing_list.expedition_set().count()
+    recipients_list = get_recipients_list(newsletter, mailing_list_pk)
+    recipients = len(recipients_list)
 
     sending_date = newsletter.sending_date.date()
     labels, clicks_by_day, openings_by_day = [], [], []
@@ -120,7 +132,8 @@ def view_newsletter_charts(request, slug):
         day_status = ContactMailingStatus.objects.filter(newsletter=newsletter,
                                                          creation_date__day=day.day,
                                                          creation_date__month=day.month,
-                                                         creation_date__year=day.year)
+                                                         creation_date__year=day.year,
+                                                         contact__in=recipients_list)
 
         opening_stats = get_newsletter_opening_statistics(day_status, recipients)
         click_stats = get_newsletter_clicked_link_statistics(day_status, recipients, 0)
