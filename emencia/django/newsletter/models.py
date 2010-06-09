@@ -196,7 +196,8 @@ class Newsletter(models.Model):
     content = models.TextField(_('content'), help_text=_('Or paste an URL.'),
                                default='<body>\n<!-- %s -->\n</body>' % ugettext('Edit your newsletter here'))
 
-    mailing_lists = models.ManyToManyField(MailingList, verbose_name=_('mailing list'))
+    mailing_list = models.ForeignKey(MailingList, verbose_name=_('mailing list'), related_name='mailing_list')
+    mailing_lists = models.ManyToManyField(MailingList, verbose_name=_('mailing list'), related_name='mailing_lists')
     test_contacts = models.ManyToManyField(Contact, verbose_name=_('test contacts'),
                                            blank=True, null=True)
 
