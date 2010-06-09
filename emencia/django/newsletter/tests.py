@@ -49,16 +49,16 @@ class SMTPServerTestCase(TestCase):
         self.newsletter = Newsletter.objects.create(title='Test Newsletter',
                                                     content='Test Newsletter Content',
                                                     server=self.server)
-        self.newsletter.mailing_lists.add(*self.mailinglist)
+        self.newsletter.mailing_lists.add(self.mailinglist)
 
         self.newsletter_2 = Newsletter.objects.create(title='Test Newsletter 2',
                                                       content='Test Newsletter 2 Content',
                                                       server=self.server)
-        self.newsletter_2.mailing_lists.add(*self.mailinglist)
+        self.newsletter_2.mailing_lists.add(self.mailinglist)
         self.newsletter_3 = Newsletter.objects.create(title='Test Newsletter 2',
                                                       content='Test Newsletter 2 Content',
                                                       server=self.server_2)
-        self.newsletter_3.mailing_lists.add(*self.mailinglist)
+        self.newsletter_3.mailing_lists.add(self.mailinglist)
 
     def test_credits(self):
         # Testing unlimited account
@@ -185,7 +185,7 @@ class NewsletterTestCase(TestCase):
         self.newsletter = Newsletter.objects.create(title='Test Newsletter',
                                                     content='Test Newsletter Content',
                                                     server=self.server)
-        self.newsletter.mailing_lists.add(*self.mailinglist)
+        self.newsletter.mailing_lists.add(self.mailinglist)
     def test_mails_sent(self):
         self.assertEquals(self.newsletter.mails_sent(), 0)
         ContactMailingStatus.objects.create(newsletter=self.newsletter,
@@ -226,7 +226,7 @@ class MailerTestCase(TestCase):
                                                     content='Test Newsletter Content',
                                                     server=self.server,
                                                     status=Newsletter.WAITING)
-        self.newsletter.mailing_lists.add(*self.mailinglist)
+        self.newsletter.mailing_lists.add(self.mailinglist)
         self.newsletter.test_contacts.add(*self.contacts[:2])
 
 
@@ -388,7 +388,7 @@ class StatisticsTestCase(TestCase):
                                                     content='Test Newsletter Content',
                                                     server=self.server,
                                                     status=Newsletter.SENT)
-        self.newsletter.mailing_lists.add(*self.mailinglist)
+        self.newsletter.mailing_lists.add(self.mailinglist)
         self.links = [Link.objects.create(title='link 1', url='htt://link.1'),
                       Link.objects.create(title='link 2', url='htt://link.2'),]
 

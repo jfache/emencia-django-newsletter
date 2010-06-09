@@ -218,9 +218,9 @@ class Newsletter(models.Model):
         return self.contactmailingstatus_set.filter(status=ContactMailingStatus.SENT).count()
         
     def recipients(self):
-        recipients = []
+        recipients = Contact.objects.none()
         for mailing_list in self.mailing_lists.all():
-            recipients.extend(mailing_list.recipients())
+            recipients |= mailing_list.recipients()
         return recipients
 
     @models.permalink
