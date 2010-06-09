@@ -172,6 +172,7 @@ class MailingListTestCase(TestCase):
         self.assertEquals(len(mailinglist.recipients()), 2)
         mailinglist.unsubscribers.add(self.contact_4)
         self.assertEquals(len(mailinglist.recipients()), 1)
+        
 
 
 class NewsletterTestCase(TestCase):
