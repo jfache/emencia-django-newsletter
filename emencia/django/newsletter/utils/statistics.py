@@ -103,8 +103,8 @@ def get_newsletter_statistics(newsletter, mailing_list_pk=None):
     recipients = recipients_list.count()
     
     newsletter_status = Status.objects.filter(newsletter=newsletter)
-    post_sending_status = newsletter_status.filter(creation_date__gte=newsletter.sending_date, contact__in=recipients_list)    
-    mails_sent = post_sending_status.filter(status=Status.SENT).count()
+    recipients_status = newsletter_status.filter(creation_date__gte=newsletter.sending_date, contact__in=recipients_list)    
+    mails_sent = recipients_status.filter(status=Status.SENT).count()
     remaining_mails = recipients - mails_sent
     if remaining_mails <= 0:
         remaining_mails = 0
@@ -114,12 +114,12 @@ def get_newsletter_statistics(newsletter, mailing_list_pk=None):
                   'mails_to_send': recipients,
                   'remaining_mails': recipients - mails_sent}
 
-    statistics.update(get_newsletter_opening_statistics(post_sending_status, recipients))
-    statistics.update(get_newsletter_on_site_opening_statistics(post_sending_status))
-    statistics.update(get_newsletter_unsubscription_statistics(post_sending_status, recipients))
-    statistics.update(get_newsletter_clicked_link_statistics(post_sending_status, recipients,
+    statistics.update(get_newsletter_opening_statistics(recipients_status, recipients))
+    statistics.update(get_newsletter_on_site_opening_statistics(recipients_status))
+    statistics.update(get_newsletter_unsubscription_statistics(recipients_status, recipients))
+    statistics.update(get_newsletter_clicked_link_statistics(recipients_status, recipients,
                                                              statistics['total_openings']))
-    statistics.update(get_newsletter_top_links(post_sending_status))
+    statistics.update(get_newsletter_top_links(recipients_status))
 
     return statistics
 
