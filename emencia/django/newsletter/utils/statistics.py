@@ -100,13 +100,16 @@ def get_newsletter_top_links(status):
 def get_newsletter_statistics(newsletter, mailing_list_pk=None):
     """Return the statistics of a newsletter"""
     recipients_list = get_recipients_list(newsletter, mailing_list_pk)
-    recipients = len(recipients_list)
-        
-    all_status = Status.objects.filter(newsletter=newsletter, contact__in=recipients_list)
-    post_sending_status = all_status.filter(creation_date__gte=newsletter.sending_date)
+    recipients = recipients_list.count()
+    
+    newsletter_status = Status.objects.filter(newsletter=newsletter)
+    post_sending_status = newsletter_status.filter(creation_date__gte=newsletter.sending_date, contact__in=recipients_list)    
     mails_sent = post_sending_status.filter(status=Status.SENT).count()
+    remaining_mails = recipients - mails_sent
+    if remaining_mails <= 0:
+        remaining_mails = 0
 
-    statistics = {'tests_sent': all_status.filter(status=Status.SENT_TEST).count(),
+    statistics = {'tests_sent': newsletter_status.filter(status=Status.SENT_TEST).count(),
                   'mails_sent': mails_sent,
                   'mails_to_send': recipients,
                   'remaining_mails': recipients - mails_sent}
