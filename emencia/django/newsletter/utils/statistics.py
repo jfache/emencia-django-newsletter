@@ -105,9 +105,9 @@ def get_newsletter_statistics(newsletter, mailing_list_pk=None):
     newsletter_status = Status.objects.filter(newsletter=newsletter)
     recipients_status = newsletter_status.filter(creation_date__gte=newsletter.sending_date, contact__in=recipients_list)    
     mails_sent = recipients_status.filter(status=Status.SENT).count()
+    if mails_sent > recipients:
+        recipients = mails_sent
     remaining_mails = recipients - mails_sent
-    if remaining_mails <= 0:
-        remaining_mails = 0
 
     statistics = {'tests_sent': newsletter_status.filter(status=Status.SENT_TEST).count(),
                   'mails_sent': mails_sent,
